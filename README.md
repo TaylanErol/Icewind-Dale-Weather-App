@@ -71,6 +71,13 @@ To create a standalone executable:
 
 ---
 
+## Known Issues
+Window Resizing Bug:
+When the system screen scaling (DPI settings) is set to anything other than 100%, the window size gradually grows each time it is re-rendered (e.g., when changing the displayed weather).
+Workaround: Set screen scaling to 100% in your display settings to avoid this issue.
+
+---
+
 ## Attribution
 
 The core logic for the weather progression system was inspired by a post on Reddit:
