@@ -139,18 +139,18 @@ weather_events = {
 
 # Weather progression mapping
 weather_progression = {
-    1: [(1, 2, 2), (3, 4, 5), (5, 6, 9)],  # (roll range, next event)
+    1: [(2, 4, 2), (5, 6, 5), (7, 8, 9)],
     2: [(1, 2, 1), (3, 3, 3), (4, 4, 5)],
-    3: [(1, 2, 2), (3, 4, 4), (5, 6, 11)],
-    4: [(1, 2, 3), (3, 4, 6), (5, 6, 10)],
-    5: [(1, 2, 2), (3, 4, 6), (5, 6, 10)],
-    6: [(1, 2, 3), (3, 4, 7), (5, 6, 11)],
-    7: [(1, 2, 4), (3, 4, 6), (5, 6, 8)],
-    8: [(1, 2, 5), (3, 4, 6), (5, 6, 7)],
-    9: [(1, 2, 1), (3, 4, 5), (5, 6, 12)],
-    10: [(1, 4, 4), (5, 6, 5), (7, 8, 6)],
-    11: [(1, 2, 3), (3, 4, 6), (5, 6, 7)],
-    12: [(1, 2, 1)]  # Wind Vortex always improves to Clear Skies
+    3: [(1, 2, 2), (3, 3, 4), (4, 4, 11)],
+    4: [(1, 2, 3), (3, 3, 6), (4, 4, 10)],
+    5: [(1, 2, 2), (3, 3, 6), (4, 4, 10)],
+    6: [(1, 2, 3), (3, 3, 7), (4, 4, 11)],
+    7: [(2, 4, 4), (5, 6, 6), (7, 8, 8)],
+    8: [(1, 2, 5), (3, 3, 6), (4, 4, 7)],
+    9: [(1, 2, 1), (3, 3, 5), (4, 4, 12)],
+    10: [(2, 4, 4), (5, 6, 5), (7, 8, 6)],
+    11: [(1, 2, 3), (3, 3, 6), (4, 4, 7)],
+    12: [(1, 4, 1)]  # Wind Vortex always improves to Clear Skies
 }
 
 current_weather = {"event": None, "duration": 0}
@@ -191,23 +191,26 @@ def apply_rich_text(widget, content):
     widget.configure(state="disabled")
 
 def new_day():
-    """Generate a new 24-hour weather schedule."""
+    """Generate a 24-hour weather schedule based on dynamic progression."""
     global weather_schedule, current_hour
     weather_schedule = []
     current_hour = 0
 
-    # Generate initial weather event
-    weather_roll = roll_dice(12)
-    event_id = weather_roll
-    event, duration_notation, description = weather_events[event_id]
-    duration = roll_multiple_dice(duration_notation)
+    # Generate initial weather event by rolling a d12
+    event_id = roll_dice(12)
 
     total_hours = 0
 
     while total_hours < 24:
+        # Fetch details of the current weather event
+        event, duration_notation, description = weather_events[event_id]
+        duration_roll = roll_multiple_dice(duration_notation)  # Roll for event duration
+        duration = duration_roll  # The duration is the total of the dice rolled
+
         hours_remaining = 24 - total_hours
-        event_duration = min(duration, hours_remaining)
-        # Append the event_id for event_duration hours
+        event_duration = min(duration, hours_remaining)  # Constrain duration to fit the day
+
+        # Add the current weather event to the schedule
         for _ in range(event_duration):
             weather_schedule.append({
                 'event_id': event_id,
@@ -220,21 +223,22 @@ def new_day():
         if total_hours >= 24:
             break
 
-        # Progress to next weather event
-        current_event = event_id
-        progression = weather_progression.get(current_event, [])
-        duration_roll = roll_multiple_dice(weather_events[current_event][1])
+        # Progress to the next weather event based on duration_roll
+        progression = weather_progression.get(event_id, [])
         next_event_id = None
+
+        # Determine the next weather event based on progression rules
         for start, end, next_event in progression:
             if start <= duration_roll <= end:
                 next_event_id = next_event
                 break
+
+        # Default to Clear Skies if no progression found
         if next_event_id is None:
-            # Default to clear skies if no progression found
             next_event_id = 1
+
+        # Update for the next iteration
         event_id = next_event_id
-        event, duration_notation, description = weather_events[event_id]
-        duration = roll_multiple_dice(duration_notation)
 
     # Update the display and bar
     draw_weather_bar()
@@ -264,55 +268,17 @@ def update_weather_display():
     ] + description)
     weather_text.configure(state="disabled")
 
-    # Adjust window size based on text content
-    app.after(100, adjust_window_size)
-
-def adjust_window_size():
-    """Adjust the window size based on the content of the weather_text widget."""
-    # Get the number of lines in the text widget
-    num_lines = int(weather_text.index('end-1c').split('.')[0])
-
-    # Get the font size using tkinter.font
-    font = tkFont.Font(font=weather_text['font'])
-    line_height = font.metrics('linespace')  # Use the actual line height
-    required_text_height = num_lines * line_height
-
-    # Calculate the total required height of the window
-    # Add heights of other widgets and padding
-    total_required_height = (
-        weather_label.winfo_reqheight() +
-        weather_canvas.winfo_reqheight() +
-        required_text_height +
-        button_frame.winfo_reqheight() +
-        100  # Additional padding and margins
-    )
-
-    # Get the current window width
-    window_width = app.winfo_width()
-
-    # Set minimum and maximum window height
-    min_height = 500
-    max_height = 900
-
-    # Adjust total height within bounds
-    total_required_height = max(min_height, min(int(total_required_height), max_height))
-
-    # Resize the window
-    app.geometry(f"{window_width}x{total_required_height}")
-
 def draw_weather_bar():
     """Draw the 24-hour weather bar with different colors."""
     weather_canvas.delete("all")
 
-    bar_width = 600  # Width of the bar
-    bar_height = 50  # Height of the bar
-    hour_width = bar_width / 24
+    hour_width = BAR_WIDTH / 24
 
     for hour in range(24):
         x0 = hour * hour_width
         y0 = 0
         x1 = x0 + hour_width
-        y1 = bar_height
+        y1 = BAR_HEIGHT
 
         event_id = weather_schedule[hour]['event_id']
         color = weather_colors.get(event_id, "#000000")  # Default to black
@@ -325,31 +291,20 @@ def draw_weather_bar():
 def update_pointer():
     """Update the pointer to indicate the current hour."""
     weather_canvas.delete("pointer")
-    bar_width = 600
-    bar_height = 50
-    hour_width = bar_width / 24
+    hour_width = BAR_WIDTH / 24
 
     x0 = current_hour * hour_width
     x1 = x0 + hour_width
     y0 = 0
-    y1 = bar_height
+    y1 = BAR_HEIGHT
 
     # Draw a red outline rectangle to indicate current hour
     weather_canvas.create_rectangle(
         x0, y0, x1, y1, outline="red", width=3, tags="pointer"
     )
 
-# Initialize weather schedule and current hour
-weather_schedule = []
-current_hour = 0
-
-# Constants for the weather bar dimensions
-BAR_WIDTH = 600  # Width of the bar in pixels
-BAR_HEIGHT = 50  # Height of the bar in pixels
-
-# (Functions for weather generation and progression remain unchanged)
-
 def on_canvas_click(event):
+    """Handle click events on the weather bar to update the current hour."""
     global current_hour
     x = event.x
     # Calculate which hour was clicked
@@ -360,6 +315,10 @@ def on_canvas_click(event):
     current_hour = clicked_hour
     update_pointer()
     update_weather_display()
+
+# Constants for the weather bar dimensions
+BAR_WIDTH = 600  # Width of the bar in pixels
+BAR_HEIGHT = 50  # Height of the bar in pixels
 
 # Initialize CustomTkinter with custom colors
 ctk.set_appearance_mode("Dark")  # Can be "Dark" or "Light"
