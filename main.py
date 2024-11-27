@@ -175,6 +175,10 @@ weather_colors = {
 weather_schedule = []
 current_hour = 0
 
+# Constants for the weather bar dimensions
+BAR_WIDTH = 600  # Width of the bar in pixels
+BAR_HEIGHT = 50  # Height of the bar in pixels
+
 def roll_dice(dice_sides):
     return random.randint(1, dice_sides)
 
@@ -268,6 +272,42 @@ def update_weather_display():
     ] + description)
     weather_text.configure(state="disabled")
 
+    # Adjust window size based on text content
+    app.after(100, adjust_window_size)
+
+def adjust_window_size():
+    """Adjust the window size based on the content of the weather_text widget."""
+    # Get the number of lines in the text widget
+    num_lines = int(float(weather_text.index('end-1c').split('.')[0]))
+
+    # Get the font size using tkinter.font
+    font = tkFont.Font(font=weather_text['font'])
+    line_height = font.metrics('linespace')  # Use the actual line height
+    required_text_height = num_lines * line_height
+
+    # Calculate the total required height of the window
+    # Add heights of other widgets and padding
+    total_required_height = (
+        weather_label.winfo_reqheight() +
+        weather_canvas.winfo_reqheight() +
+        required_text_height +
+        button_frame.winfo_reqheight() +
+        150  # Additional padding and margins
+    )
+
+    # Get the current window width
+    window_width = app.winfo_width()
+
+    # Set minimum and maximum window height
+    min_height = 500
+    max_height = 1000
+
+    # Adjust total height within bounds
+    total_required_height = max(min_height, min(int(total_required_height), max_height))
+
+    # Resize the window
+    app.geometry(f"{window_width}x{total_required_height}")
+
 def draw_weather_bar():
     """Draw the 24-hour weather bar with different colors."""
     weather_canvas.delete("all")
@@ -315,10 +355,6 @@ def on_canvas_click(event):
     current_hour = clicked_hour
     update_pointer()
     update_weather_display()
-
-# Constants for the weather bar dimensions
-BAR_WIDTH = 600  # Width of the bar in pixels
-BAR_HEIGHT = 50  # Height of the bar in pixels
 
 # Initialize CustomTkinter with custom colors
 ctk.set_appearance_mode("Dark")  # Can be "Dark" or "Light"
@@ -384,6 +420,14 @@ weather_text.configure(state="disabled")
 
 
 
+# Define rich text tags
+weather_text.tag_configure("title", font=("Trebuchet MS", 14, "bold"), foreground=PRIMARY_COLOR)
+weather_text.tag_configure("subtitle", font=("Trebuchet MS", 12, "italic"), foreground=SECONDARY_COLOR)
+weather_text.tag_configure("bold", font=("Trebuchet MS", 12, "bold"), foreground=TEXT_COLOR)
+weather_text.tag_configure("italic", font=("Trebuchet MS", 12, "italic"), foreground=TEXT_COLOR)
+weather_text.tag_configure("underline", font=("Trebuchet MS", 12, "underline"), foreground=TEXT_COLOR)
+weather_text.tag_configure("normal", font=("Trebuchet MS", 12), foreground=TEXT_COLOR)
+
 # Buttons
 button_frame = ctk.CTkFrame(app, fg_color=BACKGROUND_COLOR)
 button_frame.grid(row=4, column=0, pady=10)
@@ -405,13 +449,14 @@ new_day_button = ctk.CTkButton(
 )
 new_day_button.pack(side="left", padx=10)
 
-progress_hour_button = ctk.CTkButton(
-    button_frame,
-    text="Progress Hour",
-    command=progress_hour,
-    **button_style
-)
-progress_hour_button.pack(side="left", padx=10)
+#
+# progress_hour_button = ctk.CTkButton(
+#     button_frame,
+#     text="Progress Hour",
+#     command=progress_hour,
+#     **button_style
+# )
+#progress_hour_button.pack(side="left", padx=10)
 
 # Run Application
 app.mainloop()
