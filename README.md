@@ -1,4 +1,3 @@
-```markdown
 # Icewind Dale Weather Helper
 
 The **Icewind Dale Weather Helper** is a GUI-based tool designed to manage and track weather events in the Icewind Dale setting for tabletop RPG campaigns. It generates dynamic weather schedules, displays detailed descriptions of weather events, and provides an interactive weather bar for tracking the current hour.
@@ -103,6 +102,6 @@ This project is free to use and modify. Credit to **Jee_Day_Eye** for the origin
 - For issues with the `.ico` file in standalone executables, ensure it is included using the `--add-data` flag with `PyInstaller`.
 
 Happy adventuring in the frozen lands of Icewind Dale!
-```
+
 
 This `README.md` covers all essential details, including features, installation, usage, and attribution. Let me know if you'd like any changes!
