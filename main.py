@@ -3,6 +3,9 @@ import tkinter as tk
 import random
 from PIL import Image
 import tkinter.font as tkFont
+import sys
+import os
+
 
 
 
@@ -157,18 +160,18 @@ current_weather = {"event": None, "duration": 0}
 
 # Mapping of weather events to colors for the visual bar
 weather_colors = {
-    1: "#1E90FF",  # Clear Skies - Dodger Blue
-    2: "#87CEFA",  # Light Cloud Coverage - Light Sky Blue
-    3: "#B0C4DE",  # Overcast - Light Steel Blue
-    4: "#708090",  # Storm Clouds - Slate Gray
-    5: "#ADD8E6",  # Light Snow Dusting - Light Blue
-    6: "#FFFFFF",  # Heavy Snowfall - White
-    7: "#F0FFFF",  # Blizzard - Azure
-    8: "#E0FFFF",  # White Out - Light Cyan
-    9: "#F5F5F5",  # Extreme Fog - White Smoke
-    10:"#FFA07A",  # Lightning Storm - Light Salmon
-    11:"#A9A9A9",  # Hail Storm - Dark Gray
-    12:"#2F4F4F",  # Wind Vortex - Dark Slate Gray
+    1: "#1E90FF",  # Clear Skies - Bright Blue
+    2: "#6DB3FF",  # Light Cloud Coverage - Sky Blue
+    3: "#A3AEBE",  # Overcast - Cool Gray
+    4: "#4A4F5A",  # Storm Clouds - Deep Charcoal
+    5: "#AEEAF0",  # Light Snow Dusting - Frosty Aqua
+    6: "#E8F7FF",  # Heavy Snowfall - Soft White
+    7: "#CFEFFF",  # Blizzard - Icy Cyan
+    8: "#FF4500",  # White Out - Fiery Red (deadly cold)
+    9: "#FF6347",  # Extreme Fog - Terrifying Red-Orange
+    10: "#FFD700",  # Lightning Storm - Lightning Yellow
+    11: "#DC143C",  # Hail Storm - Crimson Red
+    12: "#8B0000",  # Wind Vortex - Dark Blood Red
 }
 
 # Initialize weather schedule and current hour
@@ -356,6 +359,15 @@ def on_canvas_click(event):
     update_pointer()
     update_weather_display()
 
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and PyInstaller """
+    try:
+        # PyInstaller stores files in a temp folder under sys._MEIPASS
+        base_path = sys._MEIPASS
+    except AttributeError:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
 # Initialize CustomTkinter with custom colors
 ctk.set_appearance_mode("Dark")  # Can be "Dark" or "Light"
 
@@ -376,7 +388,7 @@ app.minsize(700, 500)    # Set minimum size
 app.configure(fg_color=BACKGROUND_COLOR)
 
 # Set window icon using .ico file
-app.iconbitmap("auril.ico")  # Ensure you have auril.ico in the same directory
+app.iconbitmap(resource_path("Images/auril.ico"))
 
 # Configure the grid
 app.grid_rowconfigure(0, weight=0)  # Spacer
